@@ -184,3 +184,15 @@ export interface ConversationMessage {
   speaker: 'assistant' | 'user';
   message: string;
 }
+
+export interface ExecutionLog {
+  created_at: string;
+  data: string;
+  type: 'request' | 'response';
+  component: string;
+  provider: string;
+}
+
+export interface ExecutionLogsResponse {
+  data: ExecutionLog[];
+}
