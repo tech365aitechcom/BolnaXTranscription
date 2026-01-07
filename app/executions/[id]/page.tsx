@@ -129,6 +129,11 @@ export default function ExecutionDetailPage() {
               </div>
             </div>
             <div className='flex items-center gap-2'>
+              <Link href={`/executions/${executionId}/log`}>
+                <Button variant='outline' size='sm'>
+                  View logs
+                </Button>
+              </Link>
               <Link href='/executions'>
                 <Button variant='outline' size='sm'>
                   ← Agent conversations
