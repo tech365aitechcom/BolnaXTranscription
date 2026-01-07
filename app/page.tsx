@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { WebhookData, ConversationMessage } from '@/lib/types'
-import { parseTranscript, decodeUnicode } from '@/lib/utils'
+import { parseTranscript, decodeUnicode } from '@/lib/const'
 
 export default function Home() {
   const [conversation, setConversation] = useState<WebhookData | null>(null)

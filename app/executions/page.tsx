@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { WebhookData } from '@/lib/types'
-import { decodeUnicode } from '@/lib/utils'
+import { decodeUnicode } from '@/lib/const'
 
 interface ExecutionResponse {
   page_number: number

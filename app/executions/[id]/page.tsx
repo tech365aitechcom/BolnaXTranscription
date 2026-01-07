@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { WebhookData, ConversationMessage } from '@/lib/types'
-import { parseTranscript, decodeUnicode } from '@/lib/utils'
+import { parseTranscript, decodeUnicode } from '@/lib/const'
 
 export default function ExecutionDetailPage() {
   const params = useParams()
