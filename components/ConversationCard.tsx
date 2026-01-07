@@ -1,7 +1,7 @@
 'use client';
 
 import { WebhookData } from '@/lib/types';
-import { formatDuration, formatCost, formatDate, getStatusColor, decodeUnicode, parseTranscript } from '@/lib/utils';
+import { formatDuration, formatCost, formatDate, getStatusColor, decodeUnicode, parseTranscript } from '@/lib/const';
 
 interface ConversationCardProps {
   conversation: WebhookData;

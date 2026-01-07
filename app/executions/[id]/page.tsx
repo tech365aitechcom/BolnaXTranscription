@@ -5,6 +5,9 @@ import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { WebhookData, ConversationMessage } from '@/lib/types'
 import { parseTranscript, decodeUnicode } from '@/lib/const'
+import { Button } from '@/components/ui/button'
+import { Copy, Check } from 'lucide-react'
+import { toast } from 'sonner'
 
 export default function ExecutionDetailPage() {
   const params = useParams()
@@ -14,6 +17,7 @@ export default function ExecutionDetailPage() {
   const [messages, setMessages] = useState<ConversationMessage[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     fetchExecution()
@@ -45,10 +49,11 @@ export default function ExecutionDetailPage() {
     }
   }
 
-  function formatDuration(seconds: number): string {
-    const mins = Math.floor(seconds / 60)
-    const secs = seconds % 60
-    return `${mins}m ${secs}s`
+  function handleCopy() {
+    navigator.clipboard.writeText(executionId)
+    setCopied(true)
+    toast.success('Execution ID copied to clipboard')
+    setTimeout(() => setCopied(false), 2000)
   }
 
   if (loading) {
@@ -104,17 +109,32 @@ export default function ExecutionDetailPage() {
                 <h1 className='text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent'>
                   Conversation data
                 </h1>
-                <p className='text-xs text-gray-500 mt-0.5 font-mono'>
-                  {executionId}
-                </p>
+                <div className='flex items-center gap-2 mt-0.5'>
+                  <p className='text-xs text-gray-500 font-mono'>
+                    {executionId}
+                  </p>
+                  <Button
+                    variant='ghost'
+                    size='icon'
+                    className='h-6 w-6'
+                    onClick={handleCopy}
+                  >
+                    {copied ? (
+                      <Check className='h-3 w-3 text-green-600' />
+                    ) : (
+                      <Copy className='h-3 w-3' />
+                    )}
+                  </Button>
+                </div>
               </div>
             </div>
-            <Link
-              href='/executions'
-              className='px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors'
-            >
-              ← Agent conversations
-            </Link>
+            <div className='flex items-center gap-2'>
+              <Link href='/executions'>
+                <Button variant='outline' size='sm'>
+                  ← Agent conversations
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </header>
@@ -126,7 +146,7 @@ export default function ExecutionDetailPage() {
           <div className='bg-white rounded-xl shadow-sm p-4 border border-gray-100'>
             <p className='text-xs text-gray-500 mb-1'>Status</p>
             <span
-              className={`px-2 py-1 text-xs font-medium rounded-full ${
+              className={`px-2 py-1 text-xs font-medium rounded-full capitalize ${
                 execution.status === 'completed'
                   ? 'bg-green-100 text-green-800'
                   : execution.status === 'in-progress'
@@ -141,14 +161,14 @@ export default function ExecutionDetailPage() {
             <p className='text-xs text-gray-500 mb-1'>Duration</p>
             <p className='text-lg font-bold text-gray-900'>
               {execution.conversation_duration
-                ? formatDuration(Math.round(execution.conversation_duration))
+                ? Math.round(execution.conversation_duration) + 's'
                 : 'N/A'}
             </p>
           </div>
           <div className='bg-white rounded-xl shadow-sm p-4 border border-gray-100'>
             <p className='text-xs text-gray-500 mb-1'>Total Cost</p>
             <p className='text-lg font-bold text-gray-900'>
-              ${execution.total_cost?.toFixed(2) || '0.00'}
+              ${(execution.total_cost / 100)?.toFixed(3) || '0.00'}
             </p>
           </div>
           <div className='bg-white rounded-xl shadow-sm p-4 border border-gray-100'>
@@ -171,15 +191,6 @@ export default function ExecutionDetailPage() {
                   </p>
                 </div>
               </div>
-
-              <a
-                href={execution.telephony_data.recording_url}
-                target='_blank'
-                rel='noopener noreferrer'
-                className='text-sm text-blue-600 hover:text-blue-800 font-medium'
-              >
-                Download
-              </a>
             </div>
 
             <audio controls preload='none' className='w-full rounded-lg'>

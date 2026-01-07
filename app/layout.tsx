@@ -3,8 +3,9 @@ import './globals.css'
 import { Toaster } from 'sonner'
 
 export const metadata: Metadata = {
-  title: 'Transcription Viewer',
-  description: 'Real-time conversation transcription viewer',
+  title: 'AI Agents Call Analytics Platform | 365aitech',
+  description:
+    'Comprehensive AI-powered call analytics platform for tracking, analyzing, and optimizing agent conversations. View real-time transcriptions, performance metrics, call recordings, and detailed conversation insights all in one place.',
 }
 
 export default function RootLayout({

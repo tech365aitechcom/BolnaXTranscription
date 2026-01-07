@@ -3,9 +3,18 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { WebhookData } from '@/lib/types'
-import { decodeUnicode } from '@/lib/const'
 import RawDataDrawer from '@/components/RawDataDrawer'
-import { ArrowUpRight, ExternalLink, FileSearchCorner } from 'lucide-react'
+import Pagination from '@/components/Pagination'
+import {
+  ArrowUpRight,
+  Copy,
+  ExternalLink,
+  FileSearchCorner,
+  RefreshCw,
+  Check,
+} from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { toast } from 'sonner'
 
 interface ExecutionResponse {
   page_number: number
@@ -20,24 +29,55 @@ export default function ExecutionsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [pageNumber, setPageNumber] = useState(1)
+  const [pageSize, setPageSize] = useState(20)
   const [totalPages, setTotalPages] = useState(1)
-  const [totalCount, setTotalCount] = useState(0)
   const [statusFilter, setStatusFilter] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
   const [openRawDrawer, setOpenRawDrawer] = useState(false)
   const [selectedExecution, setSelectedExecution] =
     useState<WebhookData | null>(null)
+  const [copiedId, setCopiedId] = useState<string | null>(null)
+  const [metrics, setMetrics] = useState({
+    totalExecutions: 0,
+    totalCost: 0,
+    totalDuration: 0,
+    avgCost: 0,
+    avgDuration: 0,
+    statusCounts: {
+      busy: 0,
+      completed: 0,
+    },
+  })
 
   useEffect(() => {
     fetchExecutions()
-  }, [pageNumber, statusFilter])
+    fetchMetrics()
+  }, [pageNumber, statusFilter, pageSize])
+
+  async function fetchMetrics() {
+    try {
+      const response = await fetch('/api/executions/metrics', {
+        cache: 'no-store',
+      })
+
+      if (!response.ok) {
+        console.error('Failed to fetch metrics')
+        return
+      }
+
+      const data = await response.json()
+      setMetrics(data)
+    } catch (err) {
+      console.error('Error fetching metrics:', err)
+    }
+  }
 
   async function fetchExecutions() {
     try {
       setLoading(true)
       const params = new URLSearchParams({
         page_number: pageNumber.toString(),
-        page_size: '20',
+        page_size: pageSize.toString(),
       })
 
       if (statusFilter) {
@@ -54,8 +94,7 @@ export default function ExecutionsPage() {
 
       const data: ExecutionResponse = await response.json()
       setExecutions(data.data || [])
-      setTotalCount(data.data.length || 0)
-      setTotalPages(Math.ceil(data.total / data.page_size))
+      setTotalPages(Math.ceil(data.total / pageSize))
     } catch (err) {
       console.error('Error fetching executions:', err)
       setError('Failed to load executions')
@@ -88,30 +127,12 @@ export default function ExecutionsPage() {
     return 0
   }
 
-  // Calculate metrics
-  const metrics = {
-    totalExecutions: totalCount,
-    totalCost: executions.reduce((sum, ex) => sum + getTotalCost(ex), 0),
-    totalDuration: executions.reduce(
-      (sum, ex) => sum + (ex.conversation_duration || 0),
-      0
-    ),
-    avgCost:
-      executions.length > 0
-        ? executions.reduce((sum, ex) => sum + getTotalCost(ex), 0) /
-          executions.length
-        : 0,
-    avgDuration:
-      executions.length > 0
-        ? executions.reduce(
-            (sum, ex) => sum + (ex.conversation_duration || 0),
-            0
-          ) / executions.length
-        : 0,
-    statusCounts: {
-      busy: executions.filter((ex) => ex.status === 'busy').length,
-      completed: executions.filter((ex) => ex.status === 'completed').length,
-    },
+  function handleCopyId(id: string, e: React.MouseEvent) {
+    e.stopPropagation()
+    navigator.clipboard.writeText(id)
+    setCopiedId(id)
+    toast.success('Execution ID copied to clipboard')
+    setTimeout(() => setCopiedId(null), 2000)
   }
 
   // Filter executions by search query
@@ -171,22 +192,38 @@ export default function ExecutionsPage() {
         <main className='container mx-auto px-4 sm:px-6 lg:px-8 py-8'>
           {/* Performance Metrics */}
           <div className='mb-6'>
-            <h2 className='text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2'>
-              <svg
-                className='w-5 h-5'
-                fill='none'
-                stroke='currentColor'
-                viewBox='0 0 24 24'
+            <div className='flex justify-between items-center'>
+              <h2 className='text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2'>
+                <svg
+                  className='w-5 h-5'
+                  fill='none'
+                  stroke='currentColor'
+                  viewBox='0 0 24 24'
+                >
+                  <path
+                    strokeLinecap='round'
+                    strokeLinejoin='round'
+                    strokeWidth={2}
+                    d='M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z'
+                  />
+                </svg>
+                Performance Metrics
+              </h2>
+              <Button
+                variant='outline'
+                size='sm'
+                onClick={() => {
+                  fetchExecutions()
+                  fetchMetrics()
+                }}
+                disabled={loading}
               >
-                <path
-                  strokeLinecap='round'
-                  strokeLinejoin='round'
-                  strokeWidth={2}
-                  d='M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z'
+                <RefreshCw
+                  className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`}
                 />
-              </svg>
-              Performance Metrics
-            </h2>
+                Refresh
+              </Button>
+            </div>
 
             {/* Top Metrics */}
             <div className='grid grid-cols-1 md:grid-cols-4 gap-4 mb-4'>
@@ -363,12 +400,6 @@ export default function ExecutionsPage() {
                   <option value='in-progress'>In Progress</option>
                   <option value='failed'>Failed</option>
                 </select>
-                <button
-                  onClick={() => fetchExecutions()}
-                  className='px-4 py-2 bg-blue-600 text-white rounded-lg  font-medium hover:bg-blue-700 transition-colors'
-                >
-                  🔄 Refresh
-                </button>
               </div>
             </div>
           </div>
@@ -450,8 +481,21 @@ export default function ExecutionsPage() {
                             key={execution.id}
                             className='hover:bg-gray-50 transition-colors'
                           >
-                            <td className='px-4 py-3 whitespace-nowrap  font-mono text-gray-900'>
-                              {execution.id.slice(0, 6)}...
+                            <td className='px-4 py-3 whitespace-nowrap font-mono text-gray-900'>
+                              <div className='flex items-center gap-2'>
+                                <span>{execution.id.slice(0, 6)}...</span>
+                                <button
+                                  onClick={(e) => handleCopyId(execution.id, e)}
+                                  className='hover:bg-gray-100 rounded p-1 transition-colors cursor-pointer'
+                                  title='Copy execution ID'
+                                >
+                                  {copiedId === execution.id ? (
+                                    <Check className='h-4 w-4 text-green-600' />
+                                  ) : (
+                                    <Copy className='h-4 w-4 text-gray-500' />
+                                  )}
+                                </button>
+                              </div>
                             </td>
                             <td className='px-4 py-3 whitespace-nowrap  text-blue-600'>
                               {execution.user_number ||
@@ -549,29 +593,14 @@ export default function ExecutionsPage() {
               </div>
 
               {/* Pagination */}
-              {totalPages > 1 && (
-                <div className='flex items-center justify-between mt-6'>
-                  <button
-                    onClick={() => setPageNumber((p) => Math.max(1, p - 1))}
-                    disabled={pageNumber === 1}
-                    className='px-4 py-2 bg-white border border-gray-300 rounded-lg  font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
-                  >
-                    ← Previous
-                  </button>
-                  <span className=' text-gray-700'>
-                    Page {pageNumber} of {totalPages}
-                  </span>
-                  <button
-                    onClick={() =>
-                      setPageNumber((p) => Math.min(totalPages, p + 1))
-                    }
-                    disabled={pageNumber === totalPages}
-                    className='px-4 py-2 bg-white border border-gray-300 rounded-lg  font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
-                  >
-                    Next →
-                  </button>
-                </div>
-              )}
+              <Pagination
+                pageNumber={pageNumber}
+                totalPages={totalPages}
+                pageSize={pageSize}
+                onPageChange={setPageNumber}
+                onPageSizeChange={setPageSize}
+                loading={loading}
+              />
             </>
           )}
         </main>
