@@ -9,11 +9,11 @@ export default function Home() {
   const [messages, setMessages] = useState<ConversationMessage[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch latest conversation
+  // Fetch latest conversation with polling
   useEffect(() => {
     async function fetchLatestConversation() {
       try {
-        const response = await fetch('/api/latest');
+        const response = await fetch('/api/latest', { cache: 'no-store' });
         const data = await response.json();
 
         if (data && data.transcript) {
@@ -27,39 +27,14 @@ export default function Home() {
       }
     }
 
+    // Fetch immediately on mount
     fetchLatestConversation();
-  }, []);
 
-  // Set up Server-Sent Events for real-time updates
-  useEffect(() => {
-    const eventSource = new EventSource('/api/events');
+    // Poll every 5 seconds for updates
+    const interval = setInterval(fetchLatestConversation, 5000);
 
-    eventSource.onopen = () => {
-      console.log('Connected to live updates');
-    };
-
-    eventSource.onmessage = (event) => {
-      try {
-        const parsedData = JSON.parse(event.data);
-
-        if (parsedData.type === 'conversation') {
-          const newConversation = parsedData.data as WebhookData;
-          setConversation(newConversation);
-          const parsedMessages = parseTranscript(decodeUnicode(newConversation.transcript));
-          setMessages(parsedMessages);
-        }
-      } catch (err) {
-        console.error('Error parsing SSE message:', err);
-      }
-    };
-
-    eventSource.onerror = () => {
-      eventSource.close();
-    };
-
-    return () => {
-      eventSource.close();
-    };
+    // Cleanup on unmount
+    return () => clearInterval(interval);
   }, []);
 
   return (
