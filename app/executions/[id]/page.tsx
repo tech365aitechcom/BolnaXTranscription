@@ -211,7 +211,7 @@ export default function ExecutionDetailPage() {
                 Transcription
               </h2>
             </div>
-            <div className='space-y-5'>
+            <div className='space-y-5 max-h-150 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100'>
               {messages.map((msg, index) => (
                 <div
                   key={index}
