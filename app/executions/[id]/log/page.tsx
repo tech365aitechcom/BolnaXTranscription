@@ -121,7 +121,7 @@ export default function ExecutionLogPage() {
             </Link>
             <span className='text-gray-400'>|</span>
             <Link
-              href='/executions'
+              href='/'
               className='text-blue-600 hover:text-blue-800'
             >
               All executions

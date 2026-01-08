@@ -134,7 +134,7 @@ export default function ExecutionDetailPage() {
                   View logs
                 </Button>
               </Link>
-              <Link href='/executions'>
+              <Link href='/'>
                 <Button variant='outline' size='sm'>
                   ← Agent conversations
                 </Button>
