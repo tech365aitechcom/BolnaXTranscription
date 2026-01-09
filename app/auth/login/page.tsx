@@ -13,30 +13,22 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setLoading(true)
+  e.preventDefault()
+  setLoading(true)
 
-    try {
-      const result = await signIn('credentials', {
-        email,
-        password,
-        redirect: false,
-      })
-
-      if (result?.error) {
-        toast.error(result.error)
-      } else if (result?.ok) {
-        toast.success('Login successful!')
-        router.push('/')
-        router.refresh()
-      }
-    } catch (error) {
-      toast.error('An error occurred during login')
-      console.error('Login error:', error)
-    } finally {
-      setLoading(false)
-    }
+  try {
+    await signIn('credentials', {
+      email,
+      password,
+      callbackUrl: '/',
+    })
+  } catch (error) {
+    toast.error('Invalid email or password')
+  } finally {
+    setLoading(false)
   }
+}
+
 
   return (
     <div className='min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4'>
