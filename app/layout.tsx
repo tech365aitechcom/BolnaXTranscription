@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { Toaster } from 'sonner'
+import SessionProvider from '@/components/SessionProvider'
 
 export const metadata: Metadata = {
   title: 'AI Agents Call Analytics Platform | 365aitech',
@@ -16,8 +17,10 @@ export default function RootLayout({
   return (
     <html lang='en'>
       <body>
-        <Toaster />
-        {children}
+        <SessionProvider>
+          <Toaster />
+          {children}
+        </SessionProvider>
       </body>
     </html>
   )
