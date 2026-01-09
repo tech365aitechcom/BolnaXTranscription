@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useSession, signOut } from 'next-auth/react'
 import { WebhookData } from '@/lib/types'
 import RawDataDrawer from '@/components/RawDataDrawer'
 import Pagination from '@/components/Pagination'
+import AgentSelector from '@/components/AgentSelector'
 import {
   ArrowUpRight,
   Copy,
@@ -12,6 +14,8 @@ import {
   FileSearchCorner,
   RefreshCw,
   Check,
+  LogOut,
+  User,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
@@ -25,6 +29,7 @@ interface ExecutionResponse {
 }
 
 export default function Home() {
+  const { data: session, status } = useSession()
   const [executions, setExecutions] = useState<WebhookData[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -50,13 +55,39 @@ export default function Home() {
   })
 
   useEffect(() => {
-    fetchExecutions()
-    fetchMetrics()
-  }, [pageNumber, statusFilter, pageSize])
+    if (status !== 'loading') {
+      fetchExecutions()
+      fetchMetrics()
+    }
+  }, [pageNumber, statusFilter, pageSize, status])
+
+  // Show loading while checking authentication
+  if (status === 'loading') {
+    return (
+      <div className='min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center'>
+        <div className='text-center'>
+          <div className='animate-spin w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4'></div>
+          <p className='text-gray-500'>Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  const handleLogout = async () => {
+    await signOut({ callbackUrl: '/auth/login' })
+  }
 
   async function fetchMetrics() {
     try {
-      const response = await fetch('/api/executions/metrics', {
+      const params = new URLSearchParams()
+
+      // Add agent_id filter if an agent is selected
+      const selectedAgentId = localStorage.getItem('selectedAgentId')
+      if (selectedAgentId) {
+        params.append('agent_id', selectedAgentId)
+      }
+
+      const response = await fetch(`/api/executions/metrics?${params.toString()}`, {
         cache: 'no-store',
       })
 
@@ -82,6 +113,12 @@ export default function Home() {
 
       if (statusFilter) {
         params.append('status', statusFilter)
+      }
+
+      // Add agent_id filter if an agent is selected
+      const selectedAgentId = localStorage.getItem('selectedAgentId')
+      if (selectedAgentId) {
+        params.append('agent_id', selectedAgentId)
       }
 
       const response = await fetch(`/api/executions?${params.toString()}`, {
@@ -177,6 +214,25 @@ export default function Home() {
                     Chat history dashboard
                   </p>
                 </div>
+              </div>
+              <div className='flex items-center gap-4'>
+                <AgentSelector />
+                <div className='flex items-center gap-2 text-gray-700'>
+                  <User className='h-5 w-5' />
+                  <div className='text-sm'>
+                    <p className='font-medium'>{session?.user?.name}</p>
+                    <p className='text-xs text-gray-500'>{session?.user?.email}</p>
+                  </div>
+                </div>
+                <Button
+                  variant='outline'
+                  size='sm'
+                  onClick={handleLogout}
+                  className='flex items-center gap-2'
+                >
+                  <LogOut className='h-4 w-4' />
+                  Logout
+                </Button>
               </div>
             </div>
           </div>
