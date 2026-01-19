@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
 
     // Trigger Bolna agent to call the customer
     // Note: This is asynchronous - we don't wait for the call to complete
-    const bolnaResponse = await fetch('https://api.bolna.ai/v2/call', {
+    const bolnaResponse = await fetch('https://api.bolna.ai/call', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${bolnaApiKey}`,
