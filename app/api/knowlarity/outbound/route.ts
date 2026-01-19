@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
       },
     };
 
-    const bolnaResponse = await fetch('https://api.bolna.ai/v2/call', {
+    const bolnaResponse = await fetch('https://api.bolna.ai/call', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${bolnaApiKey}`,
