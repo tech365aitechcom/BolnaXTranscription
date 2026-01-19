@@ -12,16 +12,27 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
   try {
-    // Security: Verify request is from Knowlarity by checking origin or add secret token
+    // Security: Log request headers for debugging
     const userAgent = request.headers.get('user-agent');
     const origin = request.headers.get('origin');
+    const contentType = request.headers.get('content-type');
 
-    console.log('📞 Webhook request from:', { userAgent, origin });
+    console.log('📞 Webhook request from:', { userAgent, origin, contentType });
 
     // Parse incoming webhook data from Knowlarity
     const payload = await request.json();
 
     console.log('📞 Incoming Knowlarity webhook payload:', JSON.stringify(payload, null, 2));
+
+    // Validate SR key if provided in payload (for security)
+    const knowlaritySrKey = process.env.KNOWLARITY_SR_KEY;
+    if (payload.sr_key && knowlaritySrKey && payload.sr_key !== knowlaritySrKey) {
+      console.warn('⚠️ Invalid SR key in webhook payload');
+      return NextResponse.json(
+        { error: 'Invalid SR key' },
+        { status: 403 }
+      );
+    }
 
     // Extract call details from Knowlarity payload
     const {
