@@ -31,6 +31,7 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status');
     const callType = searchParams.get('call_type');
     const requestedAgentId = searchParams.get('agent_id'); // Optional: filter by specific agent
+    const searchQuery = searchParams.get('search')?.toLowerCase(); // Search query
 
     // Get user's agents
     const userAgents = session.user.agents || [];
@@ -65,10 +66,11 @@ export async function GET(request: NextRequest) {
       agentIdsToFetch = userAgents.map(agent => agent.bolnaAgentId);
     }
 
-    // Build query string
+    // Build query string for fetching from Bolna API
+    // Fetch all results (large page size) to avoid double pagination
     const params = new URLSearchParams({
-      page_number: pageNumber,
-      page_size: pageSize,
+      page_number: '1',
+      page_size: '10000', // Fetch large set to get all executions
     });
 
     if (status) params.append('status', status);
@@ -106,20 +108,32 @@ export async function GET(request: NextRequest) {
       return dateB - dateA;
     });
 
-    // Apply pagination to merged results
+    // Apply search filter if provided
+    let filteredExecutions = allExecutions;
+    if (searchQuery) {
+      filteredExecutions = allExecutions.filter((execution) => {
+        return (
+          execution.id?.toLowerCase().includes(searchQuery) ||
+          execution.user_number?.toLowerCase().includes(searchQuery) ||
+          execution.telephony_data?.to_number?.toLowerCase().includes(searchQuery)
+        );
+      });
+    }
+
+    // Apply pagination to filtered results
     const pageSizeNum = parseInt(pageSize);
     const pageNumberNum = parseInt(pageNumber);
     const startIndex = (pageNumberNum - 1) * pageSizeNum;
     const endIndex = startIndex + pageSizeNum;
-    const paginatedExecutions = allExecutions.slice(startIndex, endIndex);
+    const paginatedExecutions = filteredExecutions.slice(startIndex, endIndex);
 
     return NextResponse.json({
       data: paginatedExecutions,
       pagination: {
         page_number: pageNumberNum,
         page_size: pageSizeNum,
-        total_count: allExecutions.length,
-        total_pages: Math.ceil(allExecutions.length / pageSizeNum),
+        total_count: filteredExecutions.length,
+        total_pages: Math.ceil(filteredExecutions.length / pageSizeNum),
       },
     });
   } catch (error) {

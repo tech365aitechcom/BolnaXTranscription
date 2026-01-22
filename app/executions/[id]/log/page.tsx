@@ -121,10 +121,10 @@ export default function ExecutionLogPage() {
             </Link>
             <span className='text-gray-400'>|</span>
             <Link
-              href='/'
+              href='/executions'
               className='text-blue-600 hover:text-blue-800'
             >
-              All executions
+              Back to Dashboard
             </Link>
           </div>
         </div>
@@ -232,12 +232,6 @@ export default function ExecutionLogPage() {
                     <th className='px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-32'>
                       Direction
                     </th>
-                    <th className='px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-40'>
-                      Component
-                    </th>
-                    <th className='px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-32'>
-                      Provider
-                    </th>
                   </tr>
                 </thead>
                 <tbody className='divide-y divide-gray-100'>
@@ -266,16 +260,6 @@ export default function ExecutionLogPage() {
                         >
                           {log.type}
                         </span>
-                      </td>
-                      <td className='px-6 py-4 whitespace-nowrap'>
-                        <div className='flex items-center'>
-                          <span className='text-sm text-gray-900'>
-                            {log.component}
-                          </span>
-                        </div>
-                      </td>
-                      <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-600'>
-                        {log.provider}
                       </td>
                     </tr>
                   ))}
