@@ -1,7 +1,7 @@
 services:
-  hireagent-frontend:
+  hireagent-bolna:
     build: ./
-    container_name: hireagent_frontend
+    container_name: hireagent-bolna
     ports:
       - "9020:9020"
     environment:
