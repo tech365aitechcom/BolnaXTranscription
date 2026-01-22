@@ -52,7 +52,7 @@ export default function ExecutionsPage() {
   useEffect(() => {
     fetchExecutions()
     fetchMetrics()
-  }, [pageNumber, statusFilter, pageSize])
+  }, [pageNumber, statusFilter, pageSize, searchQuery])
 
   async function fetchMetrics() {
     try {
@@ -75,6 +75,7 @@ export default function ExecutionsPage() {
   async function fetchExecutions() {
     try {
       setLoading(true)
+      setError(null) // Clear any previous errors
       const params = new URLSearchParams({
         page_number: pageNumber.toString(),
         page_size: pageSize.toString(),
@@ -82,6 +83,10 @@ export default function ExecutionsPage() {
 
       if (statusFilter) {
         params.append('status', statusFilter)
+      }
+
+      if (searchQuery) {
+        params.append('search', searchQuery)
       }
 
       const response = await fetch(`/api/executions?${params.toString()}`, {
@@ -134,17 +139,6 @@ export default function ExecutionsPage() {
     toast.success('Execution ID copied to clipboard')
     setTimeout(() => setCopiedId(null), 2000)
   }
-
-  // Filter executions by search query
-  const filteredExecutions = executions.filter((execution) => {
-    if (!searchQuery) return true
-    const query = searchQuery.toLowerCase()
-    return (
-      execution.id.toLowerCase().includes(query) ||
-      execution.user_number?.toLowerCase().includes(query) ||
-      execution.telephony_data?.to_number?.toLowerCase().includes(query)
-    )
-  })
 
   return (
     <>
@@ -367,7 +361,10 @@ export default function ExecutionsPage() {
                     type='text'
                     placeholder='Search by Execution ID'
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value)
+                      setPageNumber(1) // Reset to first page when searching
+                    }}
                     className='w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg  focus:outline-none focus:ring-2 focus:ring-blue-500'
                   />
                   <svg
@@ -397,6 +394,7 @@ export default function ExecutionsPage() {
                 >
                   <option value=''>All</option>
                   <option value='completed'>Completed</option>
+                  <option value='busy'>Busy</option>
                   <option value='in-progress'>In Progress</option>
                   <option value='failed'>Failed</option>
                 </select>
@@ -464,10 +462,10 @@ export default function ExecutionsPage() {
                       </tr>
                     </thead>
                     <tbody className='bg-white divide-y divide-gray-200'>
-                      {filteredExecutions.length === 0 ? (
+                      {executions.length === 0 ? (
                         <tr>
                           <td
-                            colSpan={10}
+                            colSpan={12}
                             className='px-6 py-12 text-center text-gray-500'
                           >
                             {searchQuery
@@ -476,7 +474,7 @@ export default function ExecutionsPage() {
                           </td>
                         </tr>
                       ) : (
-                        filteredExecutions.map((execution) => (
+                        executions.map((execution) => (
                           <tr
                             key={execution.id}
                             className='hover:bg-gray-50 transition-colors'
