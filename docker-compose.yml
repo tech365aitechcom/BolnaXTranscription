@@ -1,0 +1,11 @@
+services:
+  hireagent-frontend:
+    build: ./
+    container_name: hireagent_frontend
+    ports:
+      - "9020:9020"
+    environment:
+      - NODE_ENV=production
+      - NEXTAUTH_SECRET=y9rZ3G0Y2Wm+KZ9Z9e6cB8F4xQ8pMZp2Y9N1Z3hP8M4=
+      - NEXTAUTH_URL=http://localhost:9020
+    restart: always
