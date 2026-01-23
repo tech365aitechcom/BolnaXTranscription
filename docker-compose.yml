@@ -2,6 +2,11 @@ services:
   hireagent-bolna:
     build: ./
     container_name: hireagent-bolna
+
+    env_file:
+      - .env
+
     ports:
       - "9020:9020"
+
     restart: always
