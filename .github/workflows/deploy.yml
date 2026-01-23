@@ -1,0 +1,20 @@
+name: NLNA-AGENT CI
+
+on:
+  push:
+    branches: [ "main"]
+
+jobs:
+
+  build:
+
+    runs-on: self-hosted
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Run deploy command
+      run: docker-compose -f docker-compose.yml up -d --build
+
+    - name: Remove build cache
+      run: docker system prune -a -f
