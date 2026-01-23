@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
+import { formatToIST } from '@/lib/utils'
 
 interface ExecutionResponse {
   page_number: number
@@ -519,15 +520,7 @@ export default function ExecutionsPage() {
                                 : '-'}
                             </td>
                             <td className='px-4 py-3 whitespace-nowrap  text-gray-700'>
-                              {new Date(
-                                execution.created_at
-                              ).toLocaleDateString('en-US', {
-                                month: 'short',
-                                day: 'numeric',
-                                year: '2-digit',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                              })}
+                              {formatToIST(execution.created_at)}
                             </td>
                             <td className='px-4 py-3 whitespace-nowrap  text-gray-900'>
                               ${getTotalCost(execution).toFixed(3)}

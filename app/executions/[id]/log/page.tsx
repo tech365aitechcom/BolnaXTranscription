@@ -7,6 +7,7 @@ import { ExecutionLog } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { Download, RefreshCw } from 'lucide-react'
 import { toast } from 'sonner'
+import { formatToIST24 } from '@/lib/utils'
 
 interface LogsResponse {
   data: ExecutionLog[]
@@ -79,21 +80,7 @@ export default function ExecutionLogPage() {
   }
 
   function formatTimestamp(timestamp: string) {
-    try {
-      const date = new Date(timestamp)
-      return date.toLocaleString('en-US', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        fractionalSecondDigits: 3,
-        hour12: false,
-      })
-    } catch {
-      return timestamp
-    }
+    return formatToIST24(timestamp)
   }
 
   if (loading) {

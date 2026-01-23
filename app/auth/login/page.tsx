@@ -119,7 +119,7 @@ export default function LoginPage() {
 
         {/* Footer */}
         <div className='text-center mt-6 text-sm text-gray-500'>
-          <p>Protected by Bolna Agent Dashboard</p>
+          <p>Protected by HireAgent Dashboard</p>
         </div>
       </div>
     </div>
